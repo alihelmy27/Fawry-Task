@@ -1,0 +1,46 @@
+Step 1: Verify DNS Resolution
+-Compare resolution from /etc/resolv.conf DNS vs. 8.8.8.8:
+1-Check DNS configuration in /etc/resolv.conf: cat /etc/resolv.conf
+2-Test DNS resolution with internal DNS: nslookup internal.example.com
+3-Test DNS resolution with Google’s DNS (8.8.8.8): nslookup internal.example.com 8.8.8.8
+Results:
+1-If the internal DNS resolves correctly and Google DNS does not, the issue is likely with your internal DNS server.
+2-If neither resolves, it might be a network or DNS configuration issue outside of the server.
+-------------------------------------------------------------------------------------------------------
+Step 2: Diagnose Service Reachability
+-Confirm whether the web service (port 80 or 443) is reachable on the resolved IP:
+1-Use curl to test if the web service is reachable:
+curl http://<resolved_IP>  # For HTTP
+curl https://<resolved_IP>  # For HTTPS
+2-Use telnet to test port reachability:
+telnet <resolved_IP> 80  # Test HTTP port
+telnet <resolved_IP> 443  # Test HTTPS port
+3-Use netstat to check if the service is listening on the correct port:
+netstat -tuln | grep ':80\|:443'
+Results:
+These commands will confirm whether the web server is listening on the expected ports (80 or 443).
+-------------------------------------------------------------------------------------------------------
+Step 3 & 4: List All Possible Causes & Propose and Apply Fixes
+1-DNS issues:
+-Misconfigured DNS entries in /etc/resolv.conf (pointing to an incorrect or down DNS server).
+-DNS server failure (e.g., internal DNS server might be down or unreachable).
+Confirm: Try using nslookup with a different DNS (e.g., 8.8.8.8) to see if the issue persists. If the internal DNS doesn’t resolve but Google’s DNS does, the problem lies with your internal DNS server.
+Fix : Update /etc/resolv.conf with a working DNS server, or restart the internal DNS service if it's misbehaving.
+
+2-Service availability issues:
+-The web service might be down or not responding on port 80 or 443.
+-The firewall on the server or network might be blocking access to port 80 or 443.
+-The web service is not properly configured to accept external connections.
+Confirm: Run ss or netstat to check if the service is actively listening on port 80 or 443.
+         Use curl to check if the service is responsive on these ports.
+Fix : If the service is down, restart the web server , If firewall is blocking the ports, allow traffic on 80/443.
+
+3-Network connectivity issues:
+-Network routing issues between the client system and the server.
+-Issues with internal routers, firewalls, or proxies blocking communication.
+Confirm: Test connectivity using ping and traceroute -> ping internal.example.com
+                                                        traceroute internal.example.com
+Fix : If it's a local routing issue, verify the routes on the client system.
+
+
+
